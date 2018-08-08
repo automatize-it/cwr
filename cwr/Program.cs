@@ -17,7 +17,7 @@ namespace cwr
             if (args.Length != 3)
             {
                 Console.WriteLine("CWR error in arguments");
-                Console.WriteLine("CWR usage: cwr inputfilename filewithregex outputfilename");
+                Console.WriteLine("CWR usage: cwr inputfilename filewithregex outputfilename or -stdo");
                 Environment.Exit(2);
                 return;
             }
@@ -29,6 +29,7 @@ namespace cwr
             string outfile = args[2];
             string regexstr = ".*";
             string buf = "0";
+            string console_temp = "0";
 
             /*
             using (var reader = new StreamReader(regexfile, true))
@@ -79,52 +80,94 @@ namespace cwr
 
             strr.Close();
 
-            StreamReader strr2 = new StreamReader(parsefile, enc, false);
-
-            while (!strr2.EndOfStream)
+            if (parsefile != "-stdi")
             {
-                try
+                StreamReader strr2 = new StreamReader(parsefile, enc, false);
+
+                while (!strr2.EndOfStream)
                 {
-                    buf = strr2.ReadToEnd();
+                    try
+                    {
+                        buf = strr2.ReadToEnd();
+                    }
+                    catch (System.ObjectDisposedException)
+                    {
+                        //MessageBox.Show("Ошибка чтения");
+                        return;
+                    }
+                    catch (System.IO.IOException)
+                    {
+                        //MessageBox.Show("Ошибка чтения");
+                        return;
+                    }
                 }
-                catch (System.ObjectDisposedException)
+
+                strr2.Close();
+            }
+            else {
+
+                do
                 {
-                    //MessageBox.Show("Ошибка чтения");
-                    return;
-                }
-                catch (System.IO.IOException)
-                {
-                    //MessageBox.Show("Ошибка чтения");
-                    return;
-                }
+                    console_temp = Console.ReadLine();
+                    if (!console_temp.Equals("exit", StringComparison.OrdinalIgnoreCase))
+                    {
+                        buf += console_temp;
+                    }
+                } while (console_temp.Equals("exit", StringComparison.OrdinalIgnoreCase));
             }
 
-            strr2.Close();
+            if (outfile != "-stdo")
+            {
 
-            StreamWriter sw = new StreamWriter(outfile, false, enc);
-            sw.AutoFlush = true;
+                StreamWriter sw = new StreamWriter(outfile, false, enc);
+                sw.AutoFlush = true;
+
+                var match = Regex.Match(buf, @regexstr);
+
+                while (match.Success)
+                {
+                    try
+                    {
+                        sw.WriteLine(match.Value);
+                    }
+                    catch (System.ObjectDisposedException)
+                    {
+                        return;
+                    }
+                    catch (System.IO.IOException)
+                    {
+                        return;
+                    }
+
+                    match = match.NextMatch();
+                }
+
+                sw.Close();
+            }
+            else {
+
+                var match = Regex.Match(buf, @regexstr);
+
+                while (match.Success)
+                {
+                    try
+                    {
+                        Console.WriteLine(match.Value);
+                    }
+                    catch (System.ObjectDisposedException)
+                    {
+                        return;
+                    }
+                    catch (System.IO.IOException)
+                    {
+                        return;
+                    }
+
+                    match = match.NextMatch();
+                }
+                
+            }
             
-            var match = Regex.Match(buf, @regexstr);
-
-            while (match.Success)    
-            {
-                try
-                {
-                    sw.WriteLine(match.Value);
-                }
-                catch (System.ObjectDisposedException)
-                {
-                    return;
-                }
-                catch (System.IO.IOException)
-                {
-                    return;
-                }
-
-                match = match.NextMatch();
-            }
-
-            sw.Close();
             Environment.Exit(0);
 
         }

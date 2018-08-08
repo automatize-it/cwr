@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <StartArguments>modelsheet test.txt result.txt</StartArguments>
+    <StartArguments>flnms.txt rgxp_flnm.txt out.txt</StartArguments>
   </PropertyGroup>
   <PropertyGroup>
     <PublishUrlHistory>опубликовать\</PublishUrlHistory>
